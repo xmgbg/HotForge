@@ -1,0 +1,106 @@
+# =============================================
+# 热练·即刻健身 (HotForge) 应用配置
+# =============================================
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: HotForge
+
+  # ─────────────────────────────────────────
+  # 环境切换: dev / prod
+  # ─────────────────────────────────────────
+  profiles:
+    active: dev
+
+  # ─────────────────────────────────────────
+  # MySQL 数据源 (请填写实际连接信息)
+  # ─────────────────────────────────────────
+  datasource:
+    url: jdbc:mysql://localhost:3306/hotforge?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+
+  # ─────────────────────────────────────────
+  # Redis (请填写实际连接信息)
+  # ─────────────────────────────────────────
+  data:
+    redis:
+      host: localhost
+      port: 6379
+#      password:
+      database: 0
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 4
+          max-wait: 2000ms
+
+  # ─────────────────────────────────────────
+  # 文件上传
+  # ─────────────────────────────────────────
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+
+# =============================================
+# MyBatis-Plus
+# =============================================
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: org.example.hotforge.entity
+  configuration:
+    map-underscore-to-camel-case: true         # 自动驼峰: user_id → userId
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 开发时打印 SQL
+  global-config:
+    db-config:
+      id-type: auto                             # 主键自增
+      logic-delete-field: isDeleted             # 逻辑删除字段名
+      logic-delete-value: 1                     # 已删除值
+      logic-not-delete-value: 0                 # 未删除值
+
+# =============================================
+# JWT (请填写密钥)
+# =============================================
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 604800                            # Token 有效期(秒)，默认 7 天
+
+# =============================================
+# 日志
+# =============================================
+logging:
+  level:
+    root: info
+    org.example.hotforge: debug                 # 项目包 debug 级别
+
+# =============================================
+# 应用自定义配置
+# =============================================
+app:
+  # 预约规则
+  booking:
+    cancel-before-hours: 2                      # 普通用户取消预约截止时间（开课前 N 小时）
+    trainer-cancel-before-hours: 24             # 教练取消课时截止时间（开课前 N 小时）
+
+  # 定时任务
+  schedule:
+    redis-sync-cron: "0 */5 * * * ?"             # Redis 库存同步到 MySQL，每 5 分钟
+    vip-expire-cron: "0 0 2 * * ?"               # VIP 到期检查，每天凌晨 2 点
+    session-complete-cron: "0 0 1 * * ?"          # 过期时段标记完成，每天凌晨 1 点
+
+  # 文件存储
+  upload:
+    path: ./uploads/                              # 本地上传路径
+    avatar-max-size: 2MB                          # 头像大小限制
