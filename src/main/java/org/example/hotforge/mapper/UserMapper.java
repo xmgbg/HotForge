@@ -6,5 +6,6 @@ import org.example.hotforge.entity.User;
 
 @Mapper
 public interface UserMapper extends BaseMapper<User>{
+    // 继承 BaseMapper，默认实现CRUD操作方法
 
 }
