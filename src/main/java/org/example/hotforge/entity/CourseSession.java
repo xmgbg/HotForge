@@ -14,7 +14,7 @@ public class CourseSession {
 
     private Long courseId;
 
-    private Long trainerId;
+    private Long publisherId;
 
     private LocalDateTime startTime;
 
@@ -23,6 +23,8 @@ public class CourseSession {
     private Integer capacity;
 
     private Integer totalCapacity;
+
+    private String liveUrl;
 
     private String status;
 

@@ -55,24 +55,29 @@ CREATE TABLE `trainer_application` (
 
 -- =============================================
 -- 3. 课程表
+-- 三种课程类型（每种都可设为 VIP 专享）：
+--   OFFICIAL - 官方网课（录播，管理员发布，随时可练，免审核）
+--   NORMAL   - 教练网课（录播，教练发布，随时可练，需审核）
+--   LIVE     - 直播抢课（教练发布，需排期+抢名额，需审核）
 -- =============================================
 CREATE TABLE `course` (
                           `id`            BIGINT        NOT NULL AUTO_INCREMENT COMMENT '课程ID',
-                          `trainer_id`    BIGINT        NOT NULL                COMMENT '教练用户ID',
+                          `publisher_id`  BIGINT        NOT NULL                COMMENT '发布者ID(OFFICIAL=管理员, NORMAL/LIVE=教练)',
                           `name`          VARCHAR(100)  NOT NULL                COMMENT '课程名称',
-                          `type`          VARCHAR(20)   NOT NULL                COMMENT '课程类型: GROUP-团课, PRIVATE-私教',
+                          `type`          VARCHAR(20)   NOT NULL                COMMENT '课程类型: OFFICIAL-官方网课, NORMAL-教练网课, LIVE-直播抢课',
                           `description`   TEXT          DEFAULT NULL            COMMENT '课程简介',
                           `cover_image`   VARCHAR(500)  DEFAULT NULL            COMMENT '封面图URL',
+                          `video_url`     VARCHAR(500)  DEFAULT NULL            COMMENT '录播视频URL(OFFICIAL/NORMAL 必填, LIVE 为空)',
                           `duration`      INT           NOT NULL                COMMENT '课程时长(分钟)',
-                          `max_capacity`  INT           NOT NULL DEFAULT 10     COMMENT '每节最大人数',
+                          `max_capacity`  INT           DEFAULT NULL            COMMENT '每节最大名额(仅 LIVE 有效, 网课不限)',
                           `is_vip_only`   TINYINT(1)    NOT NULL DEFAULT 0      COMMENT '是否VIP专享: 0=否, 1=是',
-                          `status`        VARCHAR(20)   NOT NULL DEFAULT 'DRAFT' COMMENT '状态: DRAFT-草稿, PENDING-待审核, PUBLISHED-已上架, REJECTED-已驳回, OFFLINE-已下架',
+                          `status`        VARCHAR(20)   NOT NULL DEFAULT 'DRAFT' COMMENT '状态: DRAFT-草稿, PENDING-待审核, PUBLISHED-已上架, REJECTED-已驳回, OFFLINE-已下架(OFFICIAL 可直接 PUBLISHED)',
                           `audit_comment` VARCHAR(500)  DEFAULT NULL            COMMENT '审核意见',
                           `is_deleted`    TINYINT(1)    NOT NULL DEFAULT 0      COMMENT '逻辑删除: 0=正常, 1=已删除',
                           `created_at`    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                           `updated_at`    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                           PRIMARY KEY (`id`),
-                          KEY `idx_trainer_id` (`trainer_id`),
+                          KEY `idx_publisher_id` (`publisher_id`),
                           KEY `idx_type` (`type`),
                           KEY `idx_status` (`status`),
                           KEY `idx_is_vip_only` (`is_vip_only`)
@@ -80,31 +85,32 @@ CREATE TABLE `course` (
 
 
 -- =============================================
--- 4. 课程时段表（每节课的具体排期）
+-- 4. 课程时段表（仅服务 LIVE 直播抢课的排期，网课无排期）
 -- =============================================
 CREATE TABLE `course_session` (
                                   `id`             BIGINT      NOT NULL AUTO_INCREMENT COMMENT '时段ID',
-                                  `course_id`      BIGINT      NOT NULL               COMMENT '课程ID',
-                                  `trainer_id`     BIGINT      NOT NULL               COMMENT '教练用户ID(冗余，方便查询)',
+                                  `course_id`      BIGINT      NOT NULL               COMMENT '课程ID(必须是 LIVE 类型)',
+                                  `publisher_id`   BIGINT      NOT NULL               COMMENT '发布者ID(冗余自 course, 方便查询)',
                                   `start_time`     DATETIME    NOT NULL               COMMENT '开始时间',
                                   `end_time`       DATETIME    NOT NULL               COMMENT '结束时间',
                                   `capacity`       INT         NOT NULL               COMMENT '剩余名额(Redis为准，MySQL异步同步)',
                                   `total_capacity` INT         NOT NULL               COMMENT '总名额',
-                                  `status`         VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '状态: PENDING-待审核, AVAILABLE-可预约, FULL-已满, CANCELLED-已取消, COMPLETED-已结束',
+                                  `live_url`       VARCHAR(500) DEFAULT NULL          COMMENT '直播间地址(开播前填写)',
+                                  `status`         VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '状态: PENDING-待审核, AVAILABLE-可抢, FULL-已满, CANCELLED-已取消, COMPLETED-已结束',
                                   `audit_comment`  VARCHAR(500) DEFAULT NULL          COMMENT '审核意见',
                                   `is_deleted`     TINYINT(1)  NOT NULL DEFAULT 0     COMMENT '逻辑删除: 0=正常, 1=已删除',
                                   `created_at`     DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                   `updated_at`     DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                                   PRIMARY KEY (`id`),
                                   KEY `idx_course_id` (`course_id`),
-                                  KEY `idx_trainer_id` (`trainer_id`),
+                                  KEY `idx_publisher_id` (`publisher_id`),
                                   KEY `idx_start_time` (`start_time`),
                                   KEY `idx_status_start` (`status`, `start_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程时段表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='课程时段表(仅LIVE直播抢课)';
 
 
 -- =============================================
--- 5. 预约记录表
+-- 5. 预约记录表（仅记录 LIVE 直播抢课的抢课结果，网课无预约）
 -- =============================================
 CREATE TABLE `booking` (
                            `id`           BIGINT      NOT NULL AUTO_INCREMENT COMMENT '预约ID',

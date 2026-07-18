@@ -12,7 +12,7 @@ public class Course {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long trainerId;
+    private Long publisherId;
 
     private String name;
 
@@ -21,6 +21,8 @@ public class Course {
     private String description;
 
     private String coverImage;
+
+    private String videoUrl;
 
     private Integer duration;
 
