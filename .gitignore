@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local secrets and assistant settings ###
+.claude/
+.env
+application-local.yml
+.git-history-before-sanitization.bundle
