@@ -2,13 +2,13 @@
 
 <div align="center">
 
-**面向健身行业的在线预约与健康管理平台**
+**集录播跟练、直播课程、训练计划与健康管理于一体的在线健身平台**
 
 从课程发布、审核与排期，到高并发抢课、体测追踪和会员服务，构建完整的数字化健身业务闭环。
 
 ![Java](https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-6DB33F?style=flat-square&logo=springboot&logoColor=white)
-![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5.5-1E90FF?style=flat-square)
+![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5.17-1E90FF?style=flat-square)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7.x-DC382D?style=flat-square&logo=redis&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Active%20Development-FF6B35?style=flat-square)
@@ -19,28 +19,30 @@
 
 ## 项目简介
 
-HotForge（热练）是一个采用前后端分离架构的健身预约与健康管理平台，围绕用户、教练、课程、排期、抢课、体测和会员服务展开。
+HotForge（热练）是一个采用前后端分离架构的综合在线健身平台。产品形态参考 Keep，用户既可以随时学习官方或教练发布的录播课程，也可以参加开放直播和限额小班课，并通过训练计划、学习记录和体测曲线持续管理健身过程。
 
-系统面向四类角色设计：
+系统采用“账号 + 能力 + 权益”的身份模型：
 
-- **普通用户（USER）**：浏览课程、参与抢课、管理预约与体测记录
-- **VIP 用户（VIP）**：访问会员专享课程及优先预约能力
-- **教练（TRAINER）**：发布课程、管理排期并维护学员服务
+- **普通账号（USER）**：浏览与学习课程、参加直播、创建训练计划、管理训练及体测记录
+- **教练能力**：普通账号认证通过后可发布录播课程和直播课程，不需要创建另一套账号
+- **VIP 权益**：独立于教练身份，提供会员专享录播和直播，不包含提前抢课
 - **管理员（ADMIN）**：审核教练、课程与排期，维护平台运行秩序
 
-项目当前以学习和工程实践为目标，重点探索 Spring Boot 后端分层设计、JWT 无状态认证、Redis 原子操作以及高并发预约场景下的数据一致性。
+项目当前以学习和工程实践为目标，重点探索 Spring Boot 后端分层设计、JWT 无状态认证、课程学习业务，以及限额小班课高并发抢课场景下的数据一致性。
 
-## 核心能力
+## 核心能力规划
 
 | 业务领域 | 能力说明 |
 | --- | --- |
-| 用户体系 | 手机号注册登录、BCrypt 密码加密、JWT 身份认证、角色权限控制 |
-| 课程管理 | 官方课程、教练课程、直播课程的发布、审核与上下架 |
-| 排期管理 | 直播课程时段、容量、状态及直播入口管理 |
+| 用户体系 | 手机号与密码登录、模拟验证码注册/找回、JWT 身份认证、教练认证 |
+| 录播跟练 | 官方及教练录播、章节学习、倍速播放、续看与完成记录 |
+| 直播课程 | 开放直播直接参与，限额小班课按规则抢课 |
+| 课程发现 | 名称搜索，以及部位、难度、器械、时长筛选、收藏和人工精选 |
+| 训练管理 | 平台或教练训练计划、用户自定义计划、训练记录 |
 | 高并发抢课 | Redisson 用户级锁 + Redis Lua 原子扣减 + MySQL 唯一约束 |
-| 预约管理 | 重复预约拦截、限时取消、库存回补和状态流转 |
-| 体测追踪 | 体重、体脂、围度、睡眠、心率及步数记录 |
-| VIP 服务 | 会员订单、有效期管理、专享课程和优先预约窗口 |
+| 体测追踪 | 体重、体脂和围度记录及变化曲线 |
+| VIP 服务 | 模拟购买、订单、续费、有效期和会员专享课程，不做提前抢课 |
+| 平台服务 | 站内消息、教练及课程审核、健身 AI 问答 |
 | 平台治理 | 教练认证、内容审核、操作日志与统一异常响应 |
 
 ## 技术架构
@@ -61,9 +63,9 @@ flowchart LR
 - Java 17
 - Spring Boot 4.1.0
 - Spring Security + JWT
-- MyBatis-Plus 3.5.5
+- MyBatis-Plus Boot 4 Starter 3.5.17
 - MySQL 8.0
-- Redis 7.x + Redisson
+- Redis 7.x + Redisson 4.6.1
 - Maven
 
 ### 前端规划
@@ -77,7 +79,7 @@ flowchart LR
 
 ## 高并发抢课设计
 
-HotForge 将并发治理集中在直播课程抢课链路中：
+HotForge 将并发治理集中在限额小班课的抢课链路中；开放直播无需抢课：
 
 ```text
 用户发起抢课
@@ -95,7 +97,7 @@ HotForge 将并发治理集中在直播课程抢课链路中：
 
 ## 数据模型
 
-项目当前包含 8 张核心业务表：
+项目当前已有 8 张基础业务表。课程章节、学习进度、训练计划、收藏、站内消息和 AI 会话等数据结构将按项目设计文档在后续里程碑补充：
 
 | 数据表 | 用途 |
 | --- | --- |
@@ -142,15 +144,18 @@ HotForge/
 - [x] JWT 生成、解析与认证过滤器
 - [x] Spring Security 无状态认证配置
 - [x] 用户注册、登录及个人信息接口
+- [x] Maven Wrapper、Spring Boot 4 依赖兼容与 H2 测试环境
+- [x] 应用上下文、用户 Service、JWT 与四个用户接口自动化测试
 
 ### 正在推进
 
-- [ ] 课程发布、查询与审核
+- [ ] 模拟验证码、密码找回和教练认证
+- [ ] 课程章节、发布、查询与审核
 - [ ] 直播课程排期管理
 - [ ] Redis 库存预热与高并发抢课
 - [ ] 预约取消、库存回补与定时对账
 - [ ] 体测记录管理
-- [ ] 角色级接口权限控制
+- [ ] 教练能力、VIP 权益与管理员权限控制
 
 ### 后续规划
 
@@ -183,10 +188,16 @@ $env:DB_PASSWORD="<你的本地数据库密码>"
 $env:JWT_SECRET="<使用 openssl rand -base64 32 生成的密钥>"
 ```
 
-6. 运行项目：
+6. 运行自动化测试（测试使用 H2，不连接本地 MySQL 和 Redis）：
 
-```bash
-mvn spring-boot:run
+```powershell
+.\mvnw.cmd test
+```
+
+7. 运行项目：
+
+```powershell
+.\mvnw.cmd spring-boot:run
 ```
 
 <div align="center">
