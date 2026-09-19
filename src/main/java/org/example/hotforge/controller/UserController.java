@@ -66,7 +66,7 @@ public class UserController {
     public Result<Void> updateCurrentUser(@Valid @RequestBody UpdateUserReqDTO dto) {
         Long userId = getCurrentUserId();
         userService.updateCurrentUser(userId, dto);
-        return Result.success("修改成功");
+        return Result.success("修改成功", null);
     }
 
     // ==========================================

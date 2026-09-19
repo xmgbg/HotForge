@@ -1,8 +1,9 @@
 package org.example.hotforge.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.example.hotforge.common.result.Result;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -129,5 +130,18 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         // 默认 cost = 10，即 2^10 = 1024 轮哈希迭代
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * JwtAuthenticationFilter 只应存在于 Spring Security 过滤链中。
+     * 禁止 Servlet 容器再次自动注册，避免过滤器重复执行并覆盖认证上下文。
+     */
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilterRegistration(
+            JwtAuthenticationFilter filter) {
+        FilterRegistrationBean<JwtAuthenticationFilter> registration =
+                new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 }

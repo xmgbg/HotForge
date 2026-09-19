@@ -3,7 +3,6 @@ package org.example.hotforge.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import io.jsonwebtoken.security.SignatureException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -93,12 +93,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // "ROLE_" 前缀是 Spring Security 的约定（hasRole("ADMIN") 实际"ROLE_ADMIN"）
             SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
 
-            // 构造认证令牌
-            // 参数：principal=userId（主体标识），credentials=null（密码不需要了，已经认证过），authorities=权限列表
-            // 这个构造器会自动设置 authenticated = true
+            // 构造已认证令牌
+            // 参数：principal=userId（主体标识），credentials=null（密码不需要了），authorities=权限列表
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null,
-                            Collections.singletonList(authority));
+                    UsernamePasswordAuthenticationToken.authenticated(
+                            userId, null, Collections.singletonList(authority));
 
             // 把认证信息存入当前线程的安全上下文
             // 之后 Controller 里通过 SecurityContextHolder.getContext().getAuthentication()就能拿到
