@@ -24,6 +24,7 @@ public class UserRespDTO {
     private String nickname;
     private String avatar;
     private String role;
+    private String trainerStatus;
     private LocalDateTime vipExpireTime;
     private Integer status;
     private LocalDateTime createdAt;

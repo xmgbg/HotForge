@@ -66,10 +66,12 @@ class UserServiceImplTest {
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(response.getUser().getNickname()).isEqualTo("138****8000");
         assertThat(response.getUser().getRole()).isEqualTo("USER");
+        assertThat(response.getUser().getTrainerStatus()).isEqualTo("NONE");
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userMapper).insert(captor.capture());
         assertThat(captor.getValue().getPassword()).isEqualTo("encoded-password");
+        assertThat(captor.getValue().getTokenVersion()).isZero();
     }
 
     @Test
@@ -161,6 +163,8 @@ class UserServiceImplTest {
         user.setPassword("encoded-password");
         user.setNickname("测试用户");
         user.setRole("USER");
+        user.setTrainerStatus("NONE");
+        user.setTokenVersion(0);
         user.setStatus(1);
         user.setCreatedAt(LocalDateTime.of(2026, 9, 19, 12, 0));
         return user;

@@ -22,7 +22,11 @@ public class User{
 
     private String role;
 
+    private String trainerStatus;
+
     private LocalDateTime vipExpireTime;
+
+    private Integer tokenVersion;
 
     private Integer status;
 

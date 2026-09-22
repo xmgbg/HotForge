@@ -35,6 +35,8 @@ class UserFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.user.nickname").value("测试用户"))
+                .andExpect(jsonPath("$.data.user.role").value("USER"))
+                .andExpect(jsonPath("$.data.user.trainerStatus").value("NONE"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

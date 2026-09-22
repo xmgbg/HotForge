@@ -19,14 +19,17 @@ CREATE TABLE `user` (
                         `password`        VARCHAR(255)  NOT NULL                 COMMENT '密码(BCrypt加密)',
                         `nickname`        VARCHAR(50)   DEFAULT NULL             COMMENT '昵称',
                         `avatar`          VARCHAR(500)  DEFAULT NULL             COMMENT '头像URL',
-                        `role`            VARCHAR(20)   NOT NULL DEFAULT 'USER'  COMMENT '角色: USER-普通用户, VIP-VIP用户, TRAINER-教练, ADMIN-管理员',
+                        `role`            VARCHAR(20)   NOT NULL DEFAULT 'USER'  COMMENT '基础角色: USER-普通用户, ADMIN-管理员',
+                        `trainer_status`  VARCHAR(20)   NOT NULL DEFAULT 'NONE'  COMMENT '教练资格: NONE-未申请, PENDING-审核中, APPROVED-已认证, REJECTED-已驳回, SUSPENDED-已停用',
                         `vip_expire_time` DATETIME      DEFAULT NULL             COMMENT 'VIP到期时间',
+                        `token_version`   INT           NOT NULL DEFAULT 0       COMMENT '令牌版本号，密码重置等安全操作后递增',
                         `status`          TINYINT       NOT NULL DEFAULT 1       COMMENT '状态: 1=正常, 0=禁用',
                         `created_at`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
                         `updated_at`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                         PRIMARY KEY (`id`),
                         UNIQUE KEY `uk_phone` (`phone`),
                         KEY `idx_role` (`role`),
+                        KEY `idx_trainer_status` (`trainer_status`),
                         KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 

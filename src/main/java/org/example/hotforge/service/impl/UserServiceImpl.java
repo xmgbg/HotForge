@@ -53,6 +53,8 @@ public class UserServiceImpl implements UserService {
                 ? dto.getNickname()
                 : maskPhone(dto.getPhone()));
         user.setRole("USER");
+        user.setTrainerStatus("NONE");
+        user.setTokenVersion(0);
         user.setStatus(1);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -166,6 +168,7 @@ public class UserServiceImpl implements UserService {
                 .nickname(user.getNickname())
                 .avatar(user.getAvatar())
                 .role(user.getRole())
+                .trainerStatus(user.getTrainerStatus())
                 .vipExpireTime(user.getVipExpireTime())
                 .status(user.getStatus())
                 .createdAt(user.getCreatedAt())
