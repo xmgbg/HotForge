@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="assets/logos/hotforge-logo-01-flame-dumbbell.png" alt="HotForge 热练：火焰哑铃 Logo" width="180" height="180">
+
 **集录播跟练、直播课程、训练计划与健康管理于一体的在线健身平台**
 
 从课程发布、审核与排期，到高并发抢课、体测追踪和会员服务，构建完整的数字化健身业务闭环。
