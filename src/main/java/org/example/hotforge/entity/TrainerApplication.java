@@ -16,8 +16,6 @@ public class TrainerApplication {
 
     private String realName;
 
-    private String idCard;
-
     private String certificationPhotos;
 
     private String bio;

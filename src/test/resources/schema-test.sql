@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS `user`;
+DROP TABLE IF EXISTS `trainer_application`;
 
 CREATE TABLE `user` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -15,4 +16,18 @@ CREATE TABLE `user` (
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE (`phone`)
+);
+
+CREATE TABLE `trainer_application` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT NOT NULL,
+    `real_name` VARCHAR(50) NOT NULL,
+    `certification_photos` JSON,
+    `bio` VARCHAR(500),
+    `status` VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    `review_comment` VARCHAR(500),
+    `reviewed_by` BIGINT,
+    `reviewed_at` DATETIME,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

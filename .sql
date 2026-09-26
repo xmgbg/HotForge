@@ -41,7 +41,6 @@ CREATE TABLE `trainer_application` (
                                        `id`                   BIGINT       NOT NULL AUTO_INCREMENT COMMENT '申请ID',
                                        `user_id`              BIGINT       NOT NULL                COMMENT '申请人用户ID',
                                        `real_name`            VARCHAR(50)  NOT NULL                COMMENT '真实姓名',
-                                       `id_card`              VARCHAR(18)  NOT NULL                COMMENT '身份证号',
                                        `certification_photos` JSON         DEFAULT NULL            COMMENT '认证材料图片URL列表 ["url1","url2"]',
                                        `bio`                  VARCHAR(500) DEFAULT NULL            COMMENT '个人简介',
                                        `status`               VARCHAR(20)  NOT NULL DEFAULT 'PENDING' COMMENT '审核状态: PENDING-待审核, APPROVED-已通过, REJECTED-已驳回',

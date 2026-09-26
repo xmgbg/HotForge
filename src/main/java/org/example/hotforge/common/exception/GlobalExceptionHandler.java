@@ -5,11 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.hotforge.common.result.Result;
 import org.example.hotforge.common.result.ResultCode;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.stream.Collectors;
 
@@ -32,6 +35,11 @@ import java.util.stream.Collectors;
 //可限定扫描包、指定拦截控制器，默认全局生效。
 
 public class GlobalExceptionHandler {
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Result<Void> handleAccessDenied(AccessDeniedException e) {
+        return Result.forbidden();
+    }
     // ==========================================
     // 1.自定义异常 — 所有 BaseException 子类一把抓
     // ==========================================
