@@ -89,6 +89,8 @@ logging:
 # 应用自定义配置
 # =============================================
 app:
+  auth:
+    simulated-code-enabled: ${SIMULATED_CODE_ENABLED:false}
   # 预约规则
   booking:
     cancel-before-hours: 2                      # 普通用户取消预约截止时间（开课前 N 小时）

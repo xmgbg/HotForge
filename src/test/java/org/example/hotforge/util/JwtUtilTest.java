@@ -21,10 +21,11 @@ class JwtUtilTest {
 
     @Test
     void shouldGenerateAndParseToken() {
-        String token = jwtUtil.generateToken(1L, "13800138000", "USER");
+        String token = jwtUtil.generateToken(1L, "13800138000", "USER", 0);
 
         assertThat(jwtUtil.getUserId(token)).isEqualTo(1L);
         assertThat(jwtUtil.getPhone(token)).isEqualTo("13800138000");
         assertThat(jwtUtil.getRole(token)).isEqualTo("USER");
+        assertThat(jwtUtil.parseToken(token).get("tokenVersion", Integer.class)).isZero();
     }
 }

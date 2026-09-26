@@ -191,6 +191,7 @@ HotForge/
 $env:DB_USERNAME="root"
 $env:DB_PASSWORD="<你的本地数据库密码>"
 $env:JWT_SECRET="<使用 openssl rand -base64 32 生成的密钥>"
+$env:SIMULATED_CODE_ENABLED="true" # 仅本地演示：接口返回验证码，不验证手机号所有权
 ```
 
 6. 运行自动化测试（测试使用 H2，不连接本地 MySQL 和 Redis）：

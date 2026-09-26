@@ -6,6 +6,8 @@ import org.example.hotforge.config.SecurityConfig;
 import org.example.hotforge.dto.LoginRespDTO;
 import org.example.hotforge.dto.UserRespDTO;
 import org.example.hotforge.service.UserService;
+import org.example.hotforge.mapper.UserMapper;
+import org.example.hotforge.entity.User;
 import org.example.hotforge.util.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,19 @@ class UserControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private UserMapper userMapper;
+
+    @org.junit.jupiter.api.BeforeEach
+    void authenticatedUser() {
+        User user = new User();
+        user.setId(1L);
+        user.setRole("USER");
+        user.setStatus(1);
+        user.setTokenVersion(0);
+        org.mockito.Mockito.lenient().when(userMapper.selectById(1L)).thenReturn(user);
+    }
+
     @Test
     void registerShouldBePublic() throws Exception {
         when(userService.register(any())).thenReturn(loginResponse());
@@ -47,7 +62,7 @@ class UserControllerTest {
         mockMvc.perform(post("/api/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"phone":"13800138000","password":"secret12","nickname":"测试用户"}
+                                {"phone":"13800138000","password":"secret12","code":"123456","nickname":"测试用户"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -102,7 +117,7 @@ class UserControllerTest {
     }
 
     private String token() {
-        return jwtUtil.generateToken(1L, "13800138000", "USER");
+        return jwtUtil.generateToken(1L, "13800138000", "USER", 0);
     }
 
     private LoginRespDTO loginResponse() {

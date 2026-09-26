@@ -8,6 +8,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.example.hotforge.service.VerificationCodeService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,12 +27,15 @@ class UserFlowIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockitoBean
+    private VerificationCodeService verificationCodeService;
+
     @Test
     void shouldCompleteRegisterLoginAndProfileFlow() throws Exception {
         String registerJson = mockMvc.perform(post("/api/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"phone":"13800138000","password":"secret12","nickname":"测试用户"}
+                                {"phone":"13800138000","password":"secret12","code":"123456","nickname":"测试用户"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -75,5 +80,24 @@ class UserFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.nickname").value("训练达人"))
                 .andExpect(jsonPath("$.data.avatar").value("https://example.com/avatar.png"));
+
+        mockMvc.perform(post("/api/auth/password/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"13800138000","code":"123456","newPassword":"newSecret12"}
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/user/me")
+                        .header("Authorization", "Bearer " + loginToken))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/user/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"13800138000","password":"newSecret12"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.token").isString());
     }
 }

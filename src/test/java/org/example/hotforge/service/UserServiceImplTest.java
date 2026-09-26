@@ -5,6 +5,7 @@ import org.example.hotforge.common.result.ResultCode;
 import org.example.hotforge.dto.LoginReqDTO;
 import org.example.hotforge.dto.LoginRespDTO;
 import org.example.hotforge.dto.RegisterReqDTO;
+import org.example.hotforge.dto.ResetPasswordReqDTO;
 import org.example.hotforge.dto.UpdateUserReqDTO;
 import org.example.hotforge.entity.User;
 import org.example.hotforge.mapper.UserMapper;
@@ -39,11 +40,14 @@ class UserServiceImplTest {
     @Mock
     private JwtUtil jwtUtil;
 
+    @Mock
+    private VerificationCodeService verificationCodeService;
+
     private UserServiceImpl userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserServiceImpl(userMapper, passwordEncoder, jwtUtil);
+        userService = new UserServiceImpl(userMapper, passwordEncoder, jwtUtil, verificationCodeService);
     }
 
     @Test
@@ -51,6 +55,7 @@ class UserServiceImplTest {
         RegisterReqDTO request = new RegisterReqDTO();
         request.setPhone("13800138000");
         request.setPassword("secret12");
+        request.setCode("123456");
 
         when(userMapper.selectOne(any())).thenReturn(null);
         when(passwordEncoder.encode("secret12")).thenReturn("encoded-password");
@@ -59,7 +64,7 @@ class UserServiceImplTest {
             user.setId(1L);
             return 1;
         });
-        when(jwtUtil.generateToken(1L, "13800138000", "USER")).thenReturn("jwt-token");
+        when(jwtUtil.generateToken(1L, "13800138000", "USER", 0)).thenReturn("jwt-token");
 
         LoginRespDTO response = userService.register(request);
 
@@ -93,7 +98,7 @@ class UserServiceImplTest {
         User user = activeUser();
         when(userMapper.selectOne(any())).thenReturn(user);
         when(passwordEncoder.matches("secret12", "encoded-password")).thenReturn(true);
-        when(jwtUtil.generateToken(1L, "13800138000", "USER")).thenReturn("jwt-token");
+        when(jwtUtil.generateToken(1L, "13800138000", "USER", 0)).thenReturn("jwt-token");
 
         LoginRespDTO response = userService.login(loginRequest());
 

@@ -77,7 +77,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 白名单：登录和注册接口不拦截
                         .requestMatchers("/api/user/login",
-                                "/api/user/register").permitAll()
+                                "/api/user/register",
+                                "/api/auth/verification-codes",
+                                "/api/auth/password/reset").permitAll()
                         // 其他所有请求都要认证
                         .anyRequest().authenticated()
                 )

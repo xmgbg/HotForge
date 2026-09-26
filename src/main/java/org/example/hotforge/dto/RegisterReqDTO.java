@@ -19,6 +19,9 @@ public class RegisterReqDTO {
     @Size(min = 6, max = 20, message = "密码长度需在6-20位之间")
     private String password;
 
+    @NotBlank(message = "验证码不能为空")
+    private String code;
+
     /** 可选，不传则自动用手机号脱敏生成默认昵称 */
     private String nickname;
 }

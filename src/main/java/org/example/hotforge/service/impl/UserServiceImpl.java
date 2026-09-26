@@ -8,11 +8,13 @@ import org.example.hotforge.common.result.ResultCode;
 import org.example.hotforge.dto.LoginReqDTO;
 import org.example.hotforge.dto.LoginRespDTO;
 import org.example.hotforge.dto.RegisterReqDTO;
+import org.example.hotforge.dto.ResetPasswordReqDTO;
 import org.example.hotforge.dto.UpdateUserReqDTO;
 import org.example.hotforge.dto.UserRespDTO;
 import org.example.hotforge.entity.User;
 import org.example.hotforge.mapper.UserMapper;
 import org.example.hotforge.service.UserService;
+import org.example.hotforge.service.VerificationCodeService;
 import org.example.hotforge.util.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final VerificationCodeService verificationCodeService;
 
     // ==========================================
     // 注册
@@ -44,6 +47,7 @@ public class UserServiceImpl implements UserService {
         if (userMapper.selectOne(wrapper) != null) {
             throw new ClientException(ResultCode.PHONE_EXISTS);
         }
+        verificationCodeService.consume(dto.getPhone(), "REGISTER", dto.getCode());
 
         // ② 构造 User 实体
         User user = new User();
@@ -64,7 +68,7 @@ public class UserServiceImpl implements UserService {
         log.info("新用户注册成功, userId={}, phone={}", user.getId(), dto.getPhone());
 
         // ④ 签发 Token + 构造响应
-        String token = jwtUtil.generateToken(user.getId(), user.getPhone(), user.getRole());
+        String token = jwtUtil.generateToken(user.getId(), user.getPhone(), user.getRole(), user.getTokenVersion());
         return LoginRespDTO.builder()
                 .token(token)
                 .user(buildUserResp(user))
@@ -97,7 +101,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // ⑤ 签发 Token
-        String token = jwtUtil.generateToken(user.getId(), user.getPhone(), user.getRole());
+        String token = jwtUtil.generateToken(user.getId(), user.getPhone(), user.getRole(), user.getTokenVersion());
         log.info("用户登录成功, userId={}, role={}", user.getId(), user.getRole());
 
         return LoginRespDTO.builder()
@@ -116,6 +120,21 @@ public class UserServiceImpl implements UserService {
             throw new ClientException(ResultCode.NOT_FOUND, "用户不存在");
         }
         return buildUserResp(user);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordReqDTO dto) {
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getPhone, dto.getPhone());
+        User user = userMapper.selectOne(wrapper);
+        if (user == null) {
+            throw new ClientException(ResultCode.NOT_FOUND, "用户不存在");
+        }
+        verificationCodeService.consume(dto.getPhone(), "RESET_PASSWORD", dto.getCode());
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
     }
 
     // ==========================================

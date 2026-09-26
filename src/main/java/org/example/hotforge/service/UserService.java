@@ -5,6 +5,7 @@ import org.example.hotforge.dto.LoginRespDTO;
 import org.example.hotforge.dto.RegisterReqDTO;
 import org.example.hotforge.dto.UpdateUserReqDTO;
 import org.example.hotforge.dto.UserRespDTO;
+import org.example.hotforge.dto.ResetPasswordReqDTO;
 
 /**
  * ================================
@@ -30,6 +31,8 @@ public interface UserService {
      * @param userId 从 SecurityContext 取出的当前用户 ID，不用前端传，防越权
      */
     UserRespDTO getCurrentUser(Long userId);
+
+    void resetPassword(ResetPasswordReqDTO dto);
 
     /**
      * 修改当前用户个人信息

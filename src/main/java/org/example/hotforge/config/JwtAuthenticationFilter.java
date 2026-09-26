@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.hotforge.util.JwtUtil;
+import org.example.hotforge.mapper.UserMapper;
+import org.example.hotforge.entity.User;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // 依赖注入
     // ==========================================
     private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
 
     // ==========================================
     // 核心过滤逻辑
@@ -86,8 +89,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 从 Payload 中拿出三个关键字段
             Long userId = claims.get("userId", Long.class);
-            String phone = claims.get("phone", String.class);
-            String role   = claims.get("role", String.class);
+            Integer tokenVersion = claims.get("tokenVersion", Integer.class);
+            User currentUser = userId == null ? null : userMapper.selectById(userId);
+            if (currentUser == null || !Integer.valueOf(1).equals(currentUser.getStatus())
+                    || tokenVersion == null || !tokenVersion.equals(currentUser.getTokenVersion())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            String role = currentUser.getRole();
 
             // 构造 Spring Security 的权限对象
             // "ROLE_" 前缀是 Spring Security 的约定（hasRole("ADMIN") 实际"ROLE_ADMIN"）

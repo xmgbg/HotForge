@@ -42,6 +42,7 @@ public class JwtUtil {
     private static final String CLAIM_USER_ID = "userId";
     private static final String CLAIM_PHONE   = "phone";
     private static final String CLAIM_ROLE    = "role";
+    private static final String CLAIM_TOKEN_VERSION = "tokenVersion";
     // ==========================================
     // 依赖注入
     // ==========================================
@@ -91,7 +92,7 @@ public class JwtUtil {
      * @param role   角色（USER / VIP / TRAINER / ADMIN）
      * @return JWT Token 字符串（可直接放入 HTTP Header）
      */
-    public String generateToken(Long userId, String phone, String role) {
+    public String generateToken(Long userId, String phone, String role, Integer tokenVersion) {
         // 当前时间 → 用来算 iat（签发时间）和 exp（过期时间）
         Date now = new Date();
         // 过期时间 = 当前时间 + yml 配置的有效期（秒→毫秒需 ×1000）
@@ -103,6 +104,7 @@ public class JwtUtil {
                 .claim(CLAIM_USER_ID, userId)       // "userId" → 用户 ID
                 .claim(CLAIM_PHONE, phone)          // "phone"  → 手机号
                 .claim(CLAIM_ROLE, role)            // "role"   → 角色
+                .claim(CLAIM_TOKEN_VERSION, tokenVersion)
                 // ── 标准 claims ──
                 .setIssuedAt(now)                   // iat：签发时间
                 .setExpiration(expiration)          // exp：过期时间
