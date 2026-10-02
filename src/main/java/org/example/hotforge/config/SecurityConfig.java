@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -80,6 +81,7 @@ public class SecurityConfig {
                                 "/api/user/register",
                                 "/api/auth/verification-codes",
                                 "/api/auth/password/reset").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/courses", "/api/courses/*").permitAll()
                         // 其他所有请求都要认证
                         .anyRequest().authenticated()
                 )
