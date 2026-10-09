@@ -6,10 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-@Data// 提供了 @Getter, @Setter, @RequiredArgsConstructor等方法
+@Data
 @TableName("user")
 public class User{
-    @TableId(type = IdType.AUTO)// 自动递增主键
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private String phone;

@@ -5,15 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * ================================
- * 登录/注册响应 DTO
- * ================================
- * 登录和注册成功后，返回 token + 用户基本信息。
- * 与 UserRespDTO 分离的原因：
- * — getCurrentUser 只返回用户信息，不需要 token
- * — register/login 需要同时返回 token + 用户信息
- */
 @Data
 @Builder
 @NoArgsConstructor

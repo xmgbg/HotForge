@@ -21,11 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-/**
- * ================================
- * 用户业务实现
- * ================================
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,12 +31,8 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final VerificationCodeService verificationCodeService;
 
-    // ==========================================
-    // 注册
-    // ==========================================
     @Override
     public LoginRespDTO register(RegisterReqDTO dto) {
-        // ① 手机号唯一性校验
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getPhone, dto.getPhone());
         if (userMapper.selectOne(wrapper) != null) {
@@ -49,7 +40,6 @@ public class UserServiceImpl implements UserService {
         }
         verificationCodeService.consume(dto.getPhone(), "REGISTER", dto.getCode());
 
-        // ② 构造 User 实体
         User user = new User();
         user.setPhone(dto.getPhone());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -63,11 +53,9 @@ public class UserServiceImpl implements UserService {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
-        // ③ 入库
         userMapper.insert(user);
         log.info("新用户注册成功, userId={}, phone={}", user.getId(), dto.getPhone());
 
-        // ④ 签发 Token + 构造响应
         String token = jwtUtil.generateToken(user.getId(), user.getPhone(), user.getRole(), user.getTokenVersion());
         return LoginRespDTO.builder()
                 .token(token)
@@ -75,32 +63,24 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    // ==========================================
-    // 登录
-    // ==========================================
     @Override
     public LoginRespDTO login(LoginReqDTO dto) {
-        // ① 按手机号查用户
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getPhone, dto.getPhone());
         User user = userMapper.selectOne(wrapper);
 
-        // ② 用户不存在
         if (user == null) {
             throw new ClientException(ResultCode.LOGIN_FAILED);
         }
 
-        // ③ 检查账号是否被禁用
         if (user.getStatus() != null && user.getStatus() == 0) {
             throw new ClientException(ResultCode.ACCOUNT_DISABLED);
         }
 
-        // ④ 比对密码
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new ClientException(ResultCode.LOGIN_FAILED);
         }
 
-        // ⑤ 签发 Token
         String token = jwtUtil.generateToken(user.getId(), user.getPhone(), user.getRole(), user.getTokenVersion());
         log.info("用户登录成功, userId={}, role={}", user.getId(), user.getRole());
 
@@ -110,9 +90,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    // ==========================================
-    // 获取当前用户信息
-    // ==========================================
     @Override
     public UserRespDTO getCurrentUser(Long userId) {
         User user = userMapper.selectById(userId);
@@ -137,9 +114,6 @@ public class UserServiceImpl implements UserService {
         userMapper.updateById(user);
     }
 
-    // ==========================================
-    // 修改个人信息
-    // ==========================================
     @Override
     public void updateCurrentUser(Long userId, UpdateUserReqDTO dto) {
         User user = userMapper.selectById(userId);
@@ -167,9 +141,6 @@ public class UserServiceImpl implements UserService {
         log.info("用户信息修改成功, userId={}", userId);
     }
 
-    // ==========================================
-    // 内部工具方法
-    // ==========================================
 
     /** 手机号脱敏：13812345678 → 138****5678 */
     private String maskPhone(String phone) {

@@ -3,11 +3,6 @@ package org.example.hotforge.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-/**
- * ================================
- * 登录请求 DTO
- * ================================
- */
 @Data
 public class LoginReqDTO {
 

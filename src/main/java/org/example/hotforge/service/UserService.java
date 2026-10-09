@@ -7,11 +7,6 @@ import org.example.hotforge.dto.UpdateUserReqDTO;
 import org.example.hotforge.dto.UserRespDTO;
 import org.example.hotforge.dto.ResetPasswordReqDTO;
 
-/**
- * ================================
- * 用户业务接口
- * ================================
- */
 public interface UserService {
 
     /**
