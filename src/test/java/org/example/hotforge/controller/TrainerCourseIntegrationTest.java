@@ -91,6 +91,77 @@ class TrainerCourseIntegrationTest {
                 .andExpect(jsonPath("$.data[0].status").value("PENDING"));
     }
 
+    @Test
+    void adminCanApproveOrRejectPendingCourseAndRejectedCourseCanBeResubmitted() throws Exception {
+        String trainer = register("13800138103");
+        String admin = register("13800138104");
+        approveTrainer(trainer);
+        User adminUser = users.selectById(jwtUtil.getUserId(admin));
+        adminUser.setRole("ADMIN");
+        users.updateById(adminUser);
+
+        String response = mockMvc.perform(post("/api/me/courses")
+                        .header("Authorization", bearer(trainer))
+                        .contentType(MediaType.APPLICATION_JSON).content(DRAFT))
+                .andReturn().getResponse().getContentAsString();
+        Number id = JsonPath.read(response, "$.data.id");
+        mockMvc.perform(post("/api/me/courses/{id}/submit", id)
+                        .header("Authorization", bearer(trainer)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/courses/pending")
+                        .header("Authorization", bearer(trainer)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/courses/pending")
+                        .header("Authorization", bearer(admin)))
+                .andExpect(jsonPath("$.data[0].id").value(id.intValue()));
+        mockMvc.perform(post("/api/admin/courses/{id}/review", id)
+                        .header("Authorization", bearer(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"decision\":\"REJECTED\"}"))
+                .andExpect(jsonPath("$.code").value(400));
+        mockMvc.perform(post("/api/admin/courses/{id}/review", id)
+                        .header("Authorization", bearer(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"decision\":\"REJECTED\",\"comment\":\"介绍不清晰\"}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/courses"))
+                .andExpect(jsonPath("$.data.length()").value(0));
+        mockMvc.perform(get("/api/me/courses").header("Authorization", bearer(trainer)))
+                .andExpect(jsonPath("$.data[0].auditComment").value("介绍不清晰"));
+
+        mockMvc.perform(put("/api/me/courses/{id}", id)
+                        .header("Authorization", bearer(trainer))
+                        .contentType(MediaType.APPLICATION_JSON).content(DRAFT))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/me/courses/{id}/submit", id)
+                        .header("Authorization", bearer(trainer)))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/me/courses").header("Authorization", bearer(trainer)))
+                .andExpect(jsonPath("$.data[0].auditComment").isEmpty());
+        mockMvc.perform(post("/api/admin/courses/{id}/review", id)
+                        .header("Authorization", bearer(trainer))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"decision\":\"APPROVED\"}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/admin/courses/{id}/review", id)
+                        .header("Authorization", bearer(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"decision\":\"APPROVED\"}"))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/courses"))
+                .andExpect(jsonPath("$.data[0].id").value(id.intValue()))
+                .andExpect(jsonPath("$.data[0].isVipOnly").value(1));
+        mockMvc.perform(get("/api/admin/courses/pending")
+                        .header("Authorization", bearer(admin)))
+                .andExpect(jsonPath("$.data.length()").value(0));
+        mockMvc.perform(post("/api/admin/courses/{id}/review", id)
+                        .header("Authorization", bearer(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"decision\":\"REJECTED\",\"comment\":\"重复审核\"}"))
+                .andExpect(jsonPath("$.code").value(400));
+    }
+
     private String register(String phone) throws Exception {
         String response = mockMvc.perform(post("/api/user/register")
                         .contentType(MediaType.APPLICATION_JSON)

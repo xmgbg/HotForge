@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.hotforge.common.exception.ClientException;
 import org.example.hotforge.common.result.ResultCode;
 import org.example.hotforge.dto.CourseDraftReqDTO;
+import org.example.hotforge.dto.CourseReviewReqDTO;
 import org.example.hotforge.entity.Course;
 import org.example.hotforge.entity.User;
 import org.example.hotforge.mapper.CourseMapper;
@@ -83,6 +84,32 @@ public class CourseManagementService {
                 .set(Course::getUpdatedAt, LocalDateTime.now()));
         if (changed != 1) {
             throw new ClientException(ResultCode.BAD_REQUEST, "课程状态已变化");
+        }
+    }
+
+    public List<Course> pending() {
+        return courses.selectList(new LambdaQueryWrapper<Course>()
+                .eq(Course::getType, "NORMAL")
+                .eq(Course::getStatus, "PENDING")
+                .eq(Course::getIsDeleted, 0)
+                .orderByAsc(Course::getCreatedAt));
+    }
+
+    public void review(Long id, CourseReviewReqDTO request) {
+        if ("REJECTED".equals(request.getDecision())
+                && (request.getComment() == null || request.getComment().isBlank())) {
+            throw new ClientException(ResultCode.BAD_REQUEST, "驳回时需要填写审核意见");
+        }
+        int changed = courses.update(null, new LambdaUpdateWrapper<Course>()
+                .eq(Course::getId, id)
+                .eq(Course::getType, "NORMAL")
+                .eq(Course::getStatus, "PENDING")
+                .eq(Course::getIsDeleted, 0)
+                .set(Course::getStatus, "APPROVED".equals(request.getDecision()) ? "PUBLISHED" : "REJECTED")
+                .set(Course::getAuditComment, request.getComment())
+                .set(Course::getUpdatedAt, LocalDateTime.now()));
+        if (changed != 1) {
+            throw new ClientException(ResultCode.BAD_REQUEST, "课程不存在或已审核");
         }
     }
 
